@@ -2,30 +2,55 @@
 #include "encode.h"
 #include "types.h"
 
-int main()
+int main( int argc,char *argv[])
 {
     EncodeInfo encInfo;
-    uint img_size;
-
-    // Fill with sample filenames
-    encInfo.src_image_fname = "beautiful.bmp";
-    encInfo.secret_fname = "secret.txt";
-    encInfo.stego_image_fname = "stego_img.bmp";
-
-    // Test open_files
-    if (open_files(&encInfo) == e_failure)
+    if(argc<4)
     {
-    	printf("ERROR: %s function failed\n", "open_files" );
-    	return 1;
+        printf("Use:./a.out -e source.bmp secret.txt[output.bmp]\n");
+        return 0;
+    }
+   //call check_opertaion_type(argv[1][1])==e_encode
+   //call read_and_validate_encode_args(argv,&encInfo)==e_sucess
+   //call do_encoding(&encInfo)==e_success
+   //print "Encoding is success"
+   if(check_operation_type(argv[1][1])==e_encode)
+   {
+    if(read_and_validate_encode_args(argv,&encInfo)==e_success)
+    {
+        if(do_encoding(&encInfo)==e_success)
+        {
+            printf("Encoding completed successfully\n");
+        }
+        else
+        {
+            printf("Encoding failed\n");
+        }
+    }
+
+   }
+   else
+   {
+    printf("Unsupported operation\n");
+   }
+   
+   return 0;
+}
+OperationType check_operation_type(char opt)
+{
+    //check optis 'e' return e_encode;
+    //check opt is 'd' return e_decode;
+    //else return e_unsupported;
+    if(opt=='e')
+    {
+        return e_encode;
+    }
+    else if(opt=='d')
+    {
+        return e_decode;
     }
     else
     {
-    	printf("SUCCESS: %s function completed\n", "open_files" );
-    }
-
-    // Test get_image_size_for_bmp
-    img_size = get_image_size_for_bmp(encInfo.fptr_src_image);
-    printf("INFO: Image size = %u\n", img_size);
-
-    return 0;
+        return e_unsupported;
+    }    
 }
