@@ -2,6 +2,7 @@
 #include "encode.h"
 #include "types.h"
 #include<string.h>
+#include "common.h"
 
 /* Function Definitions */
 
@@ -176,7 +177,7 @@ Status do_encoding(EncodeInfo *encInfo)
     if(copy_bmp_header(encInfo->fptr_src_image,encInfo->fptr_stego_image)==e_failure)
     {
         printf("ERROR:Failed to copy BMP header\n");
-        retrun e_failure;
+        return e_failure;
     }
 
     //call encode_magic_string(MAGIc_STRING,encInfo)==e_failure
@@ -247,6 +248,8 @@ Status check_capacity(EncodeInfo *encInfo)
         secret_file_size=get_file_size(encInfo->fptr_secret);
         encInfo->size_secret_file=secret_file_size;
 
+        fseek(encInfo->fptr_secret,0,SEEK_SET);
+
         //check ((14+size_secret_file)*8)> image_capacity
         
         if((14+secret_file_size)*8>image_capacity)
@@ -262,7 +265,7 @@ Status check_capacity(EncodeInfo *encInfo)
 
 }
 
-unit get_file_size(FILE *fptr)
+uint get_file_size(FILE *fptr)
 {
         //move the offset tolast position
         // return ftell()
@@ -271,7 +274,7 @@ unit get_file_size(FILE *fptr)
             return ftell(fptr);
         }
         
-        fseek(encInfo->fptr_secrt,0,SEEK_SET);//move fptr back to beginning of file
+        //secret_file_size=get_file_size(encInfo->fptr_secret);//move fptr back to beginning of file
 }
 
 Status copy_bmp_header(FILE *fptr_src_image, FILE *fptr_dest_image)
@@ -305,7 +308,7 @@ Status encode_magic_string(const char *magic_string, EncodeInfo *encInfo)
             //encode_byte_to_lsb(magic_string[1],buff)
             encode_byte_to_lsb(magic_string[i],buffer);
             //write the encoded buff to otput_file
-            fwrite(buffeer,8,1,encInfo->fptr_stego_image);
+            fwrite(buffer,8,1,encInfo->fptr_stego_image);
         }
         //return e_success
         return e_success;
@@ -334,7 +337,7 @@ Status encode_byte_to_lsb(char data, char *image_buffer)
     
 }
 
-status encode_secret_file_extn_size(EncodeInfo *encInfo)
+Status encode_secret_file_extn_size(EncodeInfo *encInfo)
 {
     
     //char *dot= strchr(secret_file_name, '.')
@@ -342,6 +345,10 @@ status encode_secret_file_extn_size(EncodeInfo *encInfo)
     char *dot;
     char buffer[32];
     dot=strrchr(encInfo->secret_fname,'.');
+    if(dot==NULL)
+    {
+        return e_failure;
+    }
     //strcpy(extn_secret_file,dot);
     strcpy(encInfo->extn_secret_file,dot);
 
@@ -366,15 +373,15 @@ Status encode_size_to_lsb( int size, char *Image_buff)
         for(i=31;i>=0;i--)
         {
             //get the ith bit is or not
-            if(size&(1<<i))
+            if(size&(1U<<i))
             {
                 //if set,set the LSB of image_buffer[]
-                image_buffer[31-i]=image_buffer[31-i]|1;
+                Image_buff[31-i]=Image_buff[31-i]|1;
             }
             else
             {
                 //if clear,clear the LSB of image_buffer[]
-                 image_buffer[31-i]=image_buffer[31-i]&~1;
+                 Image_buff[31-i]=Image_buff[31-i]&~1;
 
             }
         }
